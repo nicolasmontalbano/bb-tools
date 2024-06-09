@@ -6,6 +6,8 @@ add_to_path_if_not_exists() {
     if [[ -d "$dir" && ":$PATH:" != *":$dir:"* ]]; then
         echo "Agregando $dir al PATH..."
         export PATH="$PATH:$dir"
+    else
+        echo "El directorio $dir no existe o ya está en el PATH."
     fi
 }
 
@@ -74,4 +76,5 @@ install_tools_from_config() {
 install_go
 install_pip3
 add_to_path_if_not_exists "$HOME/go/bin"
+echo "El PATH actual es: $PATH"
 install_tools_from_config
