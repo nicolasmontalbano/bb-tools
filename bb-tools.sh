@@ -6,8 +6,6 @@ add_to_path_if_not_exists() {
     if [[ -d "$dir" && ":$PATH:" != *":$dir:"* ]]; then
         echo "Agregando $dir al PATH..."
         export PATH="$PATH:$dir"
-    else
-        echo "El directorio $dir no existe o ya está en el PATH."
     fi
 }
 
@@ -51,6 +49,7 @@ tool_is_installed() {
 
 # Función para leer el archivo de configuración y realizar las instalaciones
 install_tools_from_config() {
+    local config_file="tools.conf"
     # Lee el archivo de configuración línea por línea
     while IFS='=' read -r tool command url; do
         # Verifica si la línea no está vacía y no es un comentario
@@ -69,12 +68,12 @@ install_tools_from_config() {
                 echo "Error al instalar $tool."
             fi
         fi
-    done < "tools.conf"  # Cambia "tools.conf" por el nombre de tu archivo de configuración
+    done < "$config_file"
 }
 
 # Llamadas a las funciones
 install_go
 install_pip3
-add_to_path_if_not_exists "$HOME/go/bin"
+sudo bash -c 'add_to_path_if_not_exists "$HOME/go/bin"'
 echo "El PATH actual es: $PATH"
 install_tools_from_config
