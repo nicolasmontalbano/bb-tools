@@ -5,8 +5,8 @@ add_to_path_if_not_exists() {
     local dir=$1
     if [[ -d "$dir" ]]; then
         echo "Agregando $dir al PATH en ~/.zshrc..."
-        # Agregar export al archivo .zshrc si no está presente
-        if ! grep -qE "export PATH=.*$dir.*" ~/.zshrc; then
+        # Verificar si el directorio ya está en el PATH en .zshrc
+        if ! grep -qE ":$dir(:|\$)" ~/.zshrc; then
             sudo echo "export PATH=\$PATH:$dir" >> ~/.zshrc
         fi
     fi
@@ -51,6 +51,7 @@ tool_is_installed() {
 }
 
 # Función para leer el archivo de configuración y realizar las instalaciones
+# Función para leer el archivo de configuración y realizar las instalaciones
 install_tools_from_config() {
     local config_file="tools.conf"
     # Lee el archivo de configuración línea por línea
@@ -59,16 +60,16 @@ install_tools_from_config() {
         if [[ ! -z "$tool" && ! "$tool" =~ ^\s*# ]]; then
             # Verifica si la herramienta ya está instalada
             if tool_is_installed "$tool"; then
-                continue  # Salta a la próxima herramienta
-            fi
-            
-            echo "Instalando $tool desde $url..."
-            # Ejecuta el comando de instalación
-            $command
-            if [ $? -eq 0 ]; then
-                echo "$tool se ha instalado correctamente."
+                echo "$tool ya está instalado."
             else
-                echo "Error al instalar $tool."
+                echo "Instalando $tool desde $url..."
+                # Ejecuta el comando de instalación
+                $command
+                if [ $? -eq 0 ]; then
+                    echo "$tool se ha instalado correctamente."
+                else
+                    echo "Error al instalar $tool."
+                fi
             fi
         fi
     done < "$config_file"
