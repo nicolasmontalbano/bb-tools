@@ -93,5 +93,5 @@ install_tools_from_config() {
 # Llamadas a las funciones
 install_go
 install_pip3
-add_to_path_if_not_exists "$HOME/go/bin"
 install_tools_from_config
+add_to_path_if_not_exists "$HOME/go/bin"
