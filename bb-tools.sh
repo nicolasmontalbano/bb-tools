@@ -3,9 +3,12 @@
 # Función para agregar un directorio al PATH si no está presente y existe
 add_to_path_if_not_exists() {
     local dir=$1
-    if [[ -d "$dir" && ":$PATH:" != *":$dir:"* ]]; then
-        echo "Agregando $dir al PATH..."
-        export PATH="$PATH:$dir"
+    if [[ -d "$dir" ]]; then
+        echo "Agregando $dir al PATH en ~/.zshrc..."
+        # Agregar export al archivo .zshrc si no está presente
+        if ! grep -qE "export PATH=.*$dir.*" ~/.zshrc; then
+            echo "export PATH=\$PATH:$dir" >> ~/.zshrc
+        fi
     fi
 }
 
@@ -75,5 +78,4 @@ install_tools_from_config() {
 install_go
 install_pip3
 sudo bash -c 'add_to_path_if_not_exists "$HOME/go/bin"'
-echo "El PATH actual es: $PATH"
 install_tools_from_config
