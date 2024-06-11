@@ -79,7 +79,7 @@ install_tools_from_config() {
                 installed_tools+=("$tool")  # Almacena la herramienta procesada
                 echo "Instalando $tool desde $url..."
                 # Ejecuta el comando de instalación
-                $command
+                echo "$command" | bash
                 if [ $? -eq 0 ]; then
                     echo "$tool se ha instalado correctamente."
                 else
@@ -90,9 +90,37 @@ install_tools_from_config() {
     done < "$config_file"
 }
 
+download_wordlists() {
+    # Define the main directory and subdirectory
+    main_dir="$HOME/Tools"
+    sub_dir="$main_dir/Wordlists"
+
+    # Check if the main directory exists
+    if [ ! -d "$main_dir" ]; then
+        echo "Creating main directory: $main_dir"
+        mkdir -p "$main_dir"
+    fi
+
+    # Check if the subdirectory exists
+    if [ ! -d "$sub_dir" ]; then
+        echo "Creating subdirectory: $sub_dir"
+        mkdir -p "$sub_dir"
+    fi
+
+    echo "Directories are set up: $sub_dir"
+
+    # Change to the subdirectory
+    cd "$sub_dir" || { echo "Failed to change directory to $sub_dir"; exit 1; }
+
+    # Execute wget command
+    wget https://raw.githubusercontent.com/coffinxp/oneListForall/main/onelistforallshort.txt
+}
+
+
 # Llamadas a las funciones
 install_go
 install_pip3
 install_tools_from_config
 add_to_path_if_not_exists "$HOME/go/bin"
 add_to_path_if_not_exists "$HOME/.local/bin"
+download_wordlists
