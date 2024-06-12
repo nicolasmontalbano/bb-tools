@@ -63,6 +63,18 @@ tool_is_installed() {
     fi
 }
 
+# Función para verificar si un directorio ya existe (para git clone)
+directory_exists() {
+    local dir_path=$1
+    if [[ -d "$dir_path" ]]; then
+        echo "El directorio $dir_path ya existe."
+        return 0  # Éxito
+    else
+        echo "El directorio $dir_path no existe."
+        return 1  # Error
+    fi
+}
+
 # Función para leer el archivo de configuración y realizar las instalaciones
 install_tools_from_config() {
     local config_file="tools.conf"
@@ -77,6 +89,18 @@ install_tools_from_config() {
                 echo "$tool ya ha sido procesado."
             else
                 installed_tools+=("$tool")  # Almacena la herramienta procesada
+
+                # Validación para git clone
+                if [[ "$command" == *"git clone"* ]]; then
+                    # Extraer el nombre del directorio del comando git clone
+                    dir_name=$(echo "$command" | grep -oP 'git clone .*? \K[^ ]+')
+                    dir_path="$HOME/Tools/$dir_name"
+                    if directory_exists "$dir_path"; then
+                        echo "Saltando la instalación de $tool porque el directorio $dir_path ya existe."
+                        continue
+                    fi
+                fi
+
                 echo "Instalando $tool desde $url..."
                 # Ejecuta el comando de instalación
                 echo "$command" | bash
@@ -112,15 +136,65 @@ download_wordlists() {
     # Change to the subdirectory
     cd "$sub_dir" || { echo "Failed to change directory to $sub_dir"; exit 1; }
 
-    # Execute wget command
-    wget https://raw.githubusercontent.com/coffinxp/oneListForall/main/onelistforallshort.txt
+    # Verifica si el archivo ya existe
+    if [ -f "onelistforallshort.txt" ]; then
+        echo "El archivo 'onelistforallshort.txt' ya existe. No se descargará nada."
+    else
+        # Ejecuta el comando wget solo si el archivo no existe
+        wget https://raw.githubusercontent.com/coffinxp/oneListForall/main/onelistforallshort.txt
+    fi
 }
 
+download_wordlists2() {
+    local wordlists_config_file="~/wordlists.conf"
+    if [[ ! -f "$wordlists_config_file" ]]; then
+        echo "Error: el archivo $wordlists_config_file no existe."
+        exit 1
+    fi
 
-# Llamadas a las funciones
+    local main_dir="$HOME/Tools"
+    local sub_dir="$main_dir/Wordlists"
+
+    # Check if the main directory exists
+    if [ ! -d "$main_dir" ]; then
+        echo "Creating main directory: $main_dir"
+        mkdir -p "$main_dir"
+    fi
+
+    # Check if the subdirectory exists
+    if [ ! -d "$sub_dir" ]; then
+        echo "Creating subdirectory: $sub_dir"
+        mkdir -p "$sub_dir"
+    fi
+
+    echo "Directories are set up: $sub_dir"
+
+    # Change to the subdirectory
+    cd "$sub_dir" || { echo "Failed to change directory to $sub_dir"; exit 1; }
+
+    # Lee el archivo de configuración línea por línea
+    while IFS='=' read -r file url; do
+        # Verifica si la línea no está vacía y no es un comentario
+        if [[ ! -z "$file" && ! "$file" =~ ^\s*# ]]; then
+            # Verifica si el archivo ya existe
+            if [ -f "$file" ]; then
+                echo "El archivo '$file' ya existe. No se descargará nada."
+            else
+                echo "Descargando $file desde $url..."
+                wget "$url" -O "$file"
+                if [ $? -eq 0 ]; then
+                    echo "$file se ha descargado correctamente."
+                else
+                    echo "Error al descargar $file."
+                fi
+            fi
+        fi
+    done < "$wordlists_config_file"
+}
+
 install_go
 install_pip3
+download_wordlists2
 install_tools_from_config
 add_to_path_if_not_exists "$HOME/go/bin"
 add_to_path_if_not_exists "$HOME/.local/bin"
-download_wordlists
