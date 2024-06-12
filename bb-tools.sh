@@ -114,87 +114,8 @@ install_tools_from_config() {
     done < "$config_file"
 }
 
-download_wordlists() {
-    # Define the main directory and subdirectory
-    main_dir="$HOME/Tools"
-    sub_dir="$main_dir/Wordlists"
-
-    # Check if the main directory exists
-    if [ ! -d "$main_dir" ]; then
-        echo "Creating main directory: $main_dir"
-        mkdir -p "$main_dir"
-    fi
-
-    # Check if the subdirectory exists
-    if [ ! -d "$sub_dir" ]; then
-        echo "Creating subdirectory: $sub_dir"
-        mkdir -p "$sub_dir"
-    fi
-
-    echo "Directories are set up: $sub_dir"
-
-    # Change to the subdirectory
-    cd "$sub_dir" || { echo "Failed to change directory to $sub_dir"; exit 1; }
-
-    # Verifica si el archivo ya existe
-    if [ -f "onelistforallshort.txt" ]; then
-        echo "El archivo 'onelistforallshort.txt' ya existe. No se descargará nada."
-    else
-        # Ejecuta el comando wget solo si el archivo no existe
-        wget https://raw.githubusercontent.com/coffinxp/oneListForall/main/onelistforallshort.txt
-    fi
-}
-
-download_wordlists2() {
-    local wordlists_config_file="~/wordlists.conf"
-    if [[ ! -f "$wordlists_config_file" ]]; then
-        echo "Error: el archivo $wordlists_config_file no existe."
-        exit 1
-    fi
-
-    local main_dir="$HOME/Tools"
-    local sub_dir="$main_dir/Wordlists"
-
-    # Check if the main directory exists
-    if [ ! -d "$main_dir" ]; then
-        echo "Creating main directory: $main_dir"
-        mkdir -p "$main_dir"
-    fi
-
-    # Check if the subdirectory exists
-    if [ ! -d "$sub_dir" ]; then
-        echo "Creating subdirectory: $sub_dir"
-        mkdir -p "$sub_dir"
-    fi
-
-    echo "Directories are set up: $sub_dir"
-
-    # Change to the subdirectory
-    cd "$sub_dir" || { echo "Failed to change directory to $sub_dir"; exit 1; }
-
-    # Lee el archivo de configuración línea por línea
-    while IFS='=' read -r file url; do
-        # Verifica si la línea no está vacía y no es un comentario
-        if [[ ! -z "$file" && ! "$file" =~ ^\s*# ]]; then
-            # Verifica si el archivo ya existe
-            if [ -f "$file" ]; then
-                echo "El archivo '$file' ya existe. No se descargará nada."
-            else
-                echo "Descargando $file desde $url..."
-                wget "$url" -O "$file"
-                if [ $? -eq 0 ]; then
-                    echo "$file se ha descargado correctamente."
-                else
-                    echo "Error al descargar $file."
-                fi
-            fi
-        fi
-    done < "$wordlists_config_file"
-}
-
 install_go
 install_pip3
-download_wordlists2
 install_tools_from_config
 add_to_path_if_not_exists "$HOME/go/bin"
 add_to_path_if_not_exists "$HOME/.local/bin"
